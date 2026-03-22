@@ -18,7 +18,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use gettextrs::gettext;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gtk::{gio, glib};
@@ -97,16 +96,10 @@ impl SectorApplication {
 
     fn show_about(&self) {
         let window = self.active_window().unwrap();
-        let about = adw::AboutDialog::builder()
-            .application_name("sector")
-            .application_icon("io.github.vani_tty1.sector")
-            .developer_name("Giovanni")
-            .version(VERSION)
-            .developers(vec!["Giovanni"])
-            // Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
-            .translator_credits(&gettext("translator-credits"))
-            .copyright("© 2026 Giovanni")
-            .build();
+        let about = adw::AboutDialog::from_appdata(
+        "/io/github/vani_tty1/sector/io.github.vani_tty1.sector.metainfo.xml",
+        Some(VERSION));
+
 
         about.present(Some(&window));
     }

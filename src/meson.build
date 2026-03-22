@@ -12,7 +12,12 @@ blueprints = custom_target('blueprints',
 
 gnome.compile_resources('sector',
   'sector.gresource.xml',
-  dependencies: blueprints,
+  dependencies: [blueprints, appstream_file],
+  source_dir: [
+    '.',
+    meson.current_build_dir(),
+    meson.project_build_root() / 'data'
+  ],
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,

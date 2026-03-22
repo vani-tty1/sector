@@ -3,8 +3,8 @@ using Adw 1;
 
 template $SectorWindow: Adw.ApplicationWindow {
   title: _("Sector");
-  default-width: 800;
-  default-height: 600;
+  default-width: 450;
+  default-height: 850;
 
   content: Adw.ToolbarView {
     [top]
@@ -18,15 +18,74 @@ template $SectorWindow: Adw.ApplicationWindow {
       }
     }
 
-    content: Label label {
-      label: _("Hello, World!");
+    content: Box {
+        orientation: vertical;
+        halign: fill;
+        valign: start;
+        margin-top: 24;
+        margin-end: 24;
+        margin-start: 24;
+        margin-bottom: 24;
+        hexpand: true;
+        spacing: 24;
 
-      styles [
-        "title-1",
-      ]
+        Box{
+            orientation: vertical;
+            spacing: 12;
+            styles [ "card" ]
+
+
+            Label label {
+            label: _("Disk Usage");
+            styles ["heading"]
+            halign: start;
+            hexpand: true;
+            margin-top: 12;
+            margin-end: 12;
+            margin-start: 12;
+            }
+            Label percent {
+            label: _("45%");
+            styles ["heading"]
+            halign: start;
+            hexpand: true;
+            margin-end: 12;
+            margin-start: 12;
+            }
+            LevelBar lvlbar {
+            hexpand: true;
+            height-request: 24;
+            min-value: 0.0;
+            max-value: 100.0;
+            value: 45.0;
+            margin-bottom: 12;
+            margin-end: 12;
+            margin-start: 12;
+            }
+        }
+        Box {
+        orientation: vertical;
+        spacing: 12;
+        styles [ "card" ]
+            Label {
+            label: _("Partitions");
+            styles ["heading"]
+            halign: start;
+            hexpand: true;
+            margin-top: 12;
+            margin-end: 12;
+            margin-start: 12;
+            }
+
+
+        }
     };
   };
 }
+
+
+
+
 
 menu primary_menu {
   section {

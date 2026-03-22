@@ -18,8 +18,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use gtk::prelude::*;
 use adw::subclass::prelude::*;
+use gtk::prelude::*;
 use gtk::{gio, glib};
 
 mod imp {
@@ -30,7 +30,7 @@ mod imp {
     pub struct SectorWindow {
         // Template widgets
         #[template_child]
-        pub label: TemplateChild<gtk::Label>,
+        pub lvlbar: TemplateChild<gtk::LevelBar>,
     }
 
     #[glib::object_subclass]
@@ -47,6 +47,7 @@ mod imp {
             obj.init_template();
         }
     }
+
 
     impl ObjectImpl for SectorWindow {}
     impl WidgetImpl for SectorWindow {}
