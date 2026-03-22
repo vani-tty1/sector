@@ -8,11 +8,11 @@
     ],
     "command" : "sector",
     "finish-args" : [
-        "--share=network",
         "--share=ipc",
         "--socket=fallback-x11",
         "--device=dri",
-        "--socket=wayland"
+        "--socket=wayland",
+		"--system-talk-name=org.freedesktop.UDisks2"
     ],
     "build-options" : {
         "append-path" : "/usr/lib/sdk/rust-stable/bin",

@@ -21,6 +21,7 @@
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::{gio, glib};
+use crate::udisks;
 
 mod imp {
     use super::*;
@@ -29,6 +30,9 @@ mod imp {
     #[template(resource = "/io/github/vani_tty1/sector/window.ui")]
     pub struct SectorWindow {
         // Template widgets
+        #[template_child]
+        pub label: TemplateChild<gtk::Label>,
+
         #[template_child]
         pub lvlbar: TemplateChild<gtk::LevelBar>,
     }
@@ -49,7 +53,29 @@ mod imp {
     }
 
 
-    impl ObjectImpl for SectorWindow {}
+    impl ObjectImpl for SectorWindow {
+        fn constructed(&self) {
+            self.parent_constructed();
+            let label = self.label.clone();
+            glib::spawn_future_local(async move {
+                label.set_label("Scanning Disks");
+                match udisks::list_block_devices().await {
+                    Ok(devices) => {
+                    let mut result_text = format!("Found {} devices:\n\n", devices.len());
+                    for dev in devices {
+                            let size_gb =dev.size_bytes as f64 / 1_000_000_000.0;
+                            let short_name = dev.path.split('/').last().unwrap_or(&dev.path);
+                            result_text.push_str(&format!("{} — {:.2} GB\n", short_name, size_gb));
+                        }
+                        label.set_label(&result_text);
+                    }
+                    Err(e) => {
+                        label.set_label(&format!("Error: {}", e));
+                    }
+                }
+            });
+        }
+    }
     impl WidgetImpl for SectorWindow {}
     impl WindowImpl for SectorWindow {}
     impl ApplicationWindowImpl for SectorWindow {}

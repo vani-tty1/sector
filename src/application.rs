@@ -99,6 +99,8 @@ impl SectorApplication {
         let about = adw::AboutDialog::from_appdata(
         "/io/github/vani_tty1/sector/io.github.vani_tty1.sector.metainfo.xml",
         Some(VERSION));
+        about.set_developers(&["Giovanni Rafanan"]);
+        about.set_designers(&["Giovanni Rafanan"]);
 
 
         about.present(Some(&window));
