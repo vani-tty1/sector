@@ -30,8 +30,11 @@ mod imp {
     #[template(resource = "/io/github/vani_tty1/sector/window.ui")]
     pub struct SectorWindow {
         // Template widgets
+         #[template_child]
+        pub label1: TemplateChild<gtk::Label>,
+
         #[template_child]
-        pub label: TemplateChild<gtk::Label>,
+        pub label2: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub lvlbar: TemplateChild<gtk::LevelBar>,
@@ -56,7 +59,7 @@ mod imp {
     impl ObjectImpl for SectorWindow {
         fn constructed(&self) {
             self.parent_constructed();
-            let label = self.label.clone();
+            let label = self.label2.clone();
             glib::spawn_future_local(async move {
                 label.set_label("Scanning Disks");
                 match udisks::list_block_devices().await {
