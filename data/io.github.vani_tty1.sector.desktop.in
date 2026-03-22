@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=sector
+Exec=sector
+Icon=io.github.vani_tty1.sector
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=GTK;
+StartupNotify=true
+DBusActivatable=true
