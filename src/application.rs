@@ -101,7 +101,7 @@ impl SectorApplication {
         Some(VERSION));
         about.set_developers(&["Giovanni Rafanan"]);
         about.set_designers(&["Giovanni Rafanan"]);
-
+        about.set_copyright("©2026 Giovanni");
 
         about.present(Some(&window));
     }

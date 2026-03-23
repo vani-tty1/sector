@@ -18,6 +18,9 @@ pub async fn list_block_devices() -> zbus::Result<Vec<DriveInfo>> {
     let objects = manager.get_managed_objects().await?;
 
     for (path, interfaces) in objects {
+        if path.as_str().contains("zram") {
+            continue;
+        }
         if let Some(block_props) = interfaces.get("org.freedesktop.UDisks2.Block") {
 
             // Extract the size property (it returns a zvariant::Value which we convert to u64)

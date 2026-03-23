@@ -3,7 +3,7 @@ using Adw 1;
 
 template $SectorWindow: Adw.ApplicationWindow {
   title: _("Sector");
-  default-width: 400;
+  default-width: 300;
   default-height: 700;
 
   content: Adw.ToolbarView {
@@ -67,8 +67,15 @@ template $SectorWindow: Adw.ApplicationWindow {
         orientation: vertical;
         spacing: 12;
         styles [ "card" ]
+            Label {
+            label: _("Partitions: ");
+            styles ["title-2"]
+            halign: start;
+            margin-top: 12;
+            margin-start: 12;
+            }
             Label label2{
-            label: _("Partitions");
+            label: _("Devices");
             styles ["heading"]
             halign: start;
             hexpand: true;
