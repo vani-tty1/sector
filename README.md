@@ -9,9 +9,13 @@ A simple app to view disk usage statistics as well as perform some drive related
 ```bash
 git clone https://github.com/vani-tty1/sector.git
 ```
-2.) Open this in GNOME Builder and hit the run play button(Cargo will handle the dependencies).
+2.) Install dependencies:
 
-2.1.) Manual Way Below:
+- `blueprint-compiler`
+
+2.1.) Open this in GNOME Builder and hit the run play button.
+
+2.2.) Manual Way Below:
 
 ```bash
 # Creates a build directory and compiles it
