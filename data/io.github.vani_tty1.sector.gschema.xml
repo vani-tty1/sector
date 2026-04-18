@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="sector">
 	<schema id="io.github.vani_tty1.sector" path="/io/github/vani_tty1/sector/">
-	</schema>
+  <key name="ignored-devices" type="as">
+    <default>['zram', 'loop']</default>
+    <summary>Ignored devices</summary>
+    <description>Substrings of device paths to exclude from scanning.</description>
+  </key>
+</schema>
 </schemalist>
