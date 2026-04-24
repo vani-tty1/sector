@@ -22,6 +22,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::{gio, glib};
 use crate::udisks;
+use adw::prelude::*;
+use std::collections::HashSet;
 
 mod imp {
     use super::*;
@@ -29,12 +31,8 @@ mod imp {
     #[derive(Debug, Default, gtk::CompositeTemplate)]
     #[template(resource = "/io/github/vani_tty1/sector/window.ui")]
     pub struct SectorWindow {
-        // Template widgets
-         #[template_child]
-        pub label1: TemplateChild<gtk::Label>,
-
         #[template_child]
-        pub label2: TemplateChild<gtk::Label>,
+        pub partition_list: TemplateChild<gtk::ListBox>,
 
         #[template_child]
         pub lvlbar: TemplateChild<gtk::LevelBar>,
@@ -62,57 +60,104 @@ mod imp {
     impl ObjectImpl for SectorWindow {
         fn constructed(&self) {
             self.parent_constructed();
-            let label = self.label2.clone();
+            let partition_list = self.partition_list.clone();
             let lvlbar = self.lvlbar.clone();
             let percent_label = self.percent.clone();
 
+            lvlbar.set_min_value(0.0);
+            lvlbar.set_max_value(100.0);
+
             glib::spawn_future_local(async move {
-                label.set_label("Scanning Disks");
                 match udisks::list_block_devices().await {
-                    Ok(mut devices) => {
-                    //sort the devices according to the number
-                        devices.sort_by(|a, b| {
-                            let name_a = a.path.split('/').last().unwrap_or(&a.path);
-                            let name_b = b.path.split('/').last().unwrap_or(&b.path);
-                            match (name_a.parse::<u32>(), name_b.parse::<u32>()) {
-                                (Ok(num_a), Ok(num_b)) => num_a.cmp(&num_b),
-                                _ => name_a.cmp(name_b),
-                            }
-                        });
-                        // this displays the devices in the box in which label2 is at
-                        let mut result_text = format!("Found {} devices:\n\n", devices.len());
-                        for dev in devices {
-                            let size_gb =dev.size_bytes as f64 / 1_000_000_000.0;
-                            let short_name = dev.path.split('/').last().unwrap_or(&dev.path);
-                            result_text.push_str(&format!("{} — {:.2} GB\n", short_name.to_uppercase(), size_gb));
-                        }
-                        label.set_label(&result_text);
+                    Ok(_) => {
                         let disks = sysinfo::Disks::new_with_refreshed_list();
                         let mut total_space: u64 = 0;
                         let mut available_space: u64 = 0;
+                        let mut seen_devices: HashSet<String> = HashSet::new(); // track already-shown devices
+
                         for disk in disks.list() {
-                            total_space += disk.total_space();
-                            available_space += disk.available_space();
+                            let device_name = disk.name().to_string_lossy().to_string();
+                            let mount_point = disk.mount_point().to_string_lossy().to_string();
+                        
+                            let is_real_partition = device_name.starts_with("/dev/sd")
+                                || device_name.starts_with("/dev/nvme")
+                                || device_name.starts_with("/dev/hd")
+                                || device_name.starts_with("/dev/vd")
+                                || device_name.starts_with("/dev/mmcblk");
+                        
+                            if !is_real_partition {
+                                continue;
+                            }
+                        
+                            if seen_devices.contains(&device_name) {
+                                continue;
+                            }
+                            seen_devices.insert(device_name.clone());
+                        
+                            let total = disk.total_space();
+                            let available = disk.available_space();
+                            let used = total.saturating_sub(available);
+                        
+                            total_space += total;
+                            available_space += available;
+                        
+                            let usage_frac = if total > 0 {
+                                used as f64 / total as f64
+                            } else {
+                                0.0
+                            };
+                        
+                            // Resolve human-readable label just like Baobab does
+                            let display_name = udisks::get_partition_label(&device_name).await;
+                        
+                            let subtitle = format!(
+                                "{} • {:.2} GB used of {:.2} GB ({:.0}%)",
+                                mount_point,
+                                used as f64 / 1_000_000_000.0,
+                                total as f64 / 1_000_000_000.0,
+                                usage_frac * 100.0,
+                            );
+                        
+                            let row = adw::ActionRow::builder()
+                                .title(&display_name)   // e.g. "Fedora Linux" or "Home" instead of /dev/sda3
+                                .subtitle(&subtitle)
+                                .build();
+                        
+                            let disk_lvlbar = gtk::LevelBar::builder()
+                                .min_value(0.0)
+                                .max_value(1.0)
+                                .value(usage_frac)
+                                .valign(gtk::Align::Center)
+                                .width_request(120)
+                                .margin_end(12)
+                                .build();
+                        
+                            row.add_suffix(&disk_lvlbar);
+                            partition_list.append(&row);
                         }
 
-                        // this where the percentage calculation is,
-                        // god I love rust its much less cursed than C.
                         let used_space = total_space.saturating_sub(available_space);
                         let usage_percentage = if total_space > 0 {
                             (used_space as f64 / total_space as f64) * 100.0
                         } else {
                             0.0
                         };
+
                         lvlbar.set_value(usage_percentage);
                         percent_label.set_label(&format!("{:.0}%", usage_percentage));
                     }
                     Err(e) => {
-                        label.set_label(&format!("Error: {}", e));
+                        let error_row = adw::ActionRow::builder()
+                            .title("Error reading devices")
+                            .subtitle(&e.to_string())
+                            .build();
+                        partition_list.append(&error_row);
                     }
                 }
             });
         }
     }
+
     impl WidgetImpl for SectorWindow {}
     impl WindowImpl for SectorWindow {}
     impl ApplicationWindowImpl for SectorWindow {}
@@ -121,7 +166,8 @@ mod imp {
 
 glib::wrapper! {
     pub struct SectorWindow(ObjectSubclass<imp::SectorWindow>)
-        @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow, adw::ApplicationWindow,        @implements gio::ActionGroup, gio::ActionMap;
+        @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow, adw::ApplicationWindow,
+        @implements gio::ActionGroup, gio::ActionMap;
 }
 
 impl SectorWindow {

@@ -49,3 +49,49 @@ pub async fn list_block_devices() -> zbus::Result<Vec<DriveInfo>> {
 
     Ok(devices)
 }
+
+
+
+/// Returns the human-readable label for a device path (e.g. "/dev/sda1")
+/// Priority: filesystem label → partition name → device path fallback
+pub async fn get_partition_label(device_path: &str) -> String {
+    let Ok(conn) = Connection::system().await else {
+        return device_path.to_string();
+    };
+
+    // UDisks2 object path uses the device name with slashes replaced
+    // e.g. /dev/sda1 → /org/freedesktop/UDisks2/block_devices/sda1
+    let dev_name = device_path.trim_start_matches("/dev/");
+    let obj_path = format!("/org/freedesktop/UDisks2/block_devices/{}", dev_name);
+
+    // Try IdLabel from the Block interface (filesystem label)
+    if let Ok(proxy) = zbus::Proxy::new(
+        &conn,
+        "org.freedesktop.UDisks2",
+        obj_path.clone(),
+        "org.freedesktop.UDisks2.Block",
+    ).await {
+        if let Ok(label) = proxy.get_property::<String>("IdLabel").await {
+            if !label.is_empty() {
+                return label;
+            }
+        }
+    }
+
+    // Fallback: partition Name from the Partition interface
+    if let Ok(proxy) = zbus::Proxy::new(
+        &conn,
+        "org.freedesktop.UDisks2",
+        obj_path,
+        "org.freedesktop.UDisks2.Partition",
+    ).await {
+        if let Ok(name) = proxy.get_property::<String>("Name").await {
+            if !name.is_empty() {
+                return name;
+            }
+        }
+    }
+
+    // Final fallback: just return the device path
+    device_path.to_string()
+}

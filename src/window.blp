@@ -67,21 +67,24 @@ template $SectorWindow: Adw.ApplicationWindow {
         orientation: vertical;
         spacing: 12;
         styles [ "card" ]
+            Box {
+            orientation: vertical;
+            spacing: 12;
+            styles [ "card" ]
+
             Label {
-            label: _("Partitions: ");
-            styles ["title-2"]
-            halign: start;
-            margin-top: 12;
-            margin-start: 12;
+                label: _("Partitions");
+                styles ["title-2"]
+                halign: start;
+                margin-top: 12;
+                margin-start: 12;
+                margin-bottom: 12;
             }
-            Label label2{
-            label: _("Devices");
-            styles ["heading"]
-            halign: start;
-            hexpand: true;
-            margin-top: 12;
-            margin-end: 12;
-            margin-start: 12;
+
+            ListBox partition_list {
+                styles ["boxed-list"]
+                selection-mode: none;
+            }
             }
 
 
