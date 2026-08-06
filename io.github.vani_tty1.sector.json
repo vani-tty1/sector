@@ -43,7 +43,8 @@
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "https://github.com/vani-tty1/sector.git"
+                    "url" : "https://github.com/vani-tty1/sector.git",
+                    "branch" : "main"
                 }
             ]
         }
