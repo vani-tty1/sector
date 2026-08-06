@@ -1,0 +1,35 @@
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+name: CI Build Flatpak
+jobs:
+  flatpak:
+    name: "Flatpak"
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    strategy:
+      matrix:
+        variant:
+          - arch: x86_64
+            runner: ubuntu-26.04
+          - arch: aarch64
+            runner: ubuntu-26.04-arm
+    runs-on: ${{ matrix.variant.runner }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        submodules: recursive
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: sector.flatpak
+        manifest-path: io.github.vani_tty1.sector.json
+        cache-key: flatpak-builder-${{ github.sha }}
+        arch: ${{ matrix.variant.arch }}
+        run-tests: true
+        verbose: true
